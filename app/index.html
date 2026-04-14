@@ -1,0 +1,597 @@
+<!doctype html>
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FlashClash</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      :root {
+        --black: #111;
+        --gray: #666;
+        --light: #f5f4f0;
+        --border: #e0ddd6;
+        --accent: #c8f55a;
+        --red: #ff4545;
+        --card-h: 320px;
+      }
+      body {
+        font-family: "DM Sans", sans-serif;
+        background: #fff;
+        color: var(--black);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.25rem 2.5rem;
+        border-bottom: 1px solid var(--border);
+      }
+      .logo {
+        font-family: "DM Serif Display", serif;
+        font-size: 1.4rem;
+        letter-spacing: -0.02em;
+      }
+      .logo span {
+        font-style: italic;
+      }
+      .nav-status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: var(--gray);
+      }
+      .status-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #ccc;
+        transition: background 0.3s;
+      }
+      .status-dot.live {
+        background: #3ecf4a;
+      }
+      .hero {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 4rem 2rem 2rem;
+        text-align: center;
+      }
+      .hero h1 {
+        font-family: "DM Serif Display", serif;
+        font-size: clamp(2.8rem, 6vw, 5rem);
+        line-height: 1.05;
+        letter-spacing: -0.03em;
+        max-width: 700px;
+        margin-bottom: 1rem;
+      }
+      .hero h1 em {
+        font-style: italic;
+        color: var(--gray);
+      }
+      .hero p {
+        font-size: 1rem;
+        color: var(--gray);
+        max-width: 420px;
+        line-height: 1.6;
+        margin-bottom: 2.5rem;
+      }
+      .mode-tabs {
+        display: flex;
+        gap: 0;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 4px;
+        margin-bottom: 3rem;
+      }
+      .tab-btn {
+        padding: 0.5rem 1.5rem;
+        border-radius: 999px;
+        border: none;
+        background: transparent;
+        font-family: "DM Sans", sans-serif;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--gray);
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .tab-btn.active {
+        background: var(--black);
+        color: #fff;
+      }
+      .tab-btn.clash.active {
+        background: var(--black);
+        color: var(--accent);
+      }
+      .card-area {
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 0 1.5rem 4rem;
+      }
+      .flashcard-wrap {
+        perspective: 1200px;
+        height: var(--card-h);
+        margin-bottom: 1.5rem;
+        cursor: pointer;
+      }
+      .flashcard {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        transform-style: preserve-3d;
+        transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 16px;
+      }
+      .flashcard.flipped {
+        transform: rotateY(180deg);
+      }
+      .card-face {
+        position: absolute;
+        inset: 0;
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2.5rem;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+      }
+      .card-front {
+        background: var(--light);
+      }
+      .card-back {
+        background: var(--black);
+        color: #fff;
+        transform: rotateY(180deg);
+      }
+      .card-label {
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--gray);
+        margin-bottom: 1.25rem;
+      }
+      .card-back .card-label {
+        color: rgba(255, 255, 255, 0.4);
+      }
+      .card-text {
+        font-family: "DM Serif Display", serif;
+        font-size: clamp(1.2rem, 3vw, 1.6rem);
+        line-height: 1.3;
+        text-align: center;
+        letter-spacing: -0.01em;
+      }
+      .card-hint {
+        position: absolute;
+        bottom: 1.25rem;
+        font-size: 12px;
+        color: var(--gray);
+      }
+      .card-back .card-hint {
+        color: rgba(255, 255, 255, 0.3);
+      }
+      .clash-timer {
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+        padding: 0.75rem 1.25rem;
+        background: var(--light);
+        border-radius: 10px;
+      }
+      .clash-timer.visible {
+        display: flex;
+      }
+      .timer-display {
+        font-family: "DM Serif Display", serif;
+        font-size: 2rem;
+        letter-spacing: -0.02em;
+        transition: color 0.3s;
+      }
+      .timer-display.urgent {
+        color: var(--red);
+      }
+      .timer-label {
+        font-size: 12px;
+        color: var(--gray);
+      }
+      .progress-bar {
+        height: 3px;
+        background: var(--border);
+        border-radius: 2px;
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+        display: none;
+      }
+      .progress-bar.visible {
+        display: block;
+      }
+      .progress-fill {
+        height: 100%;
+        background: var(--black);
+        border-radius: 2px;
+        transition:
+          width 1s linear,
+          background 0.3s;
+        width: 100%;
+      }
+      .progress-fill.urgent {
+        background: var(--red);
+      }
+      .controls {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+      }
+      .btn {
+        padding: 0.65rem 1.5rem;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: #fff;
+        font-family: "DM Sans", sans-serif;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--black);
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .btn:hover {
+        background: var(--light);
+      }
+      .btn-primary {
+        background: var(--black);
+        color: #fff;
+        border-color: var(--black);
+      }
+      .btn-primary:hover {
+        opacity: 0.85;
+        background: var(--black);
+      }
+      .btn-clash {
+        background: var(--accent);
+        color: var(--black);
+        border-color: var(--accent);
+      }
+      .btn-clash:hover {
+        opacity: 0.85;
+        background: var(--accent);
+      }
+      .counter {
+        text-align: center;
+        font-size: 13px;
+        color: var(--gray);
+        margin-top: 1.25rem;
+      }
+      .result-banner {
+        display: none;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        text-align: center;
+        margin-top: 1rem;
+        font-weight: 500;
+      }
+      .result-banner.show {
+        display: block;
+      }
+      .result-banner.win {
+        background: #e8fde8;
+        color: #1a6e1a;
+      }
+      .result-banner.lose {
+        background: #fde8e8;
+        color: #6e1a1a;
+      }
+      .score-row {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 1rem;
+      }
+      .score-card {
+        flex: 1;
+        background: var(--light);
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        text-align: center;
+      }
+      .score-val {
+        font-family: "DM Serif Display", serif;
+        font-size: 1.75rem;
+      }
+      .score-lbl {
+        font-size: 11px;
+        color: var(--gray);
+        margin-top: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <div class="logo">Flash<span>Clash</span></div>
+      <div class="nav-status">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusText">checking...</span>
+      </div>
+    </nav>
+    <section class="hero">
+      <h1>Study smart.<br /><em>Clash harder.</em></h1>
+      <p>
+        Build knowledge at your own pace, then test your retention under
+        pressure.
+      </p>
+      <div class="mode-tabs">
+        <button
+          class="tab-btn active"
+          id="studyTab"
+          onclick="switchMode('study')"
+        >
+          Study Mode
+        </button>
+        <button
+          class="tab-btn clash"
+          id="clashTab"
+          onclick="switchMode('clash')"
+        >
+          Clash Mode
+        </button>
+      </div>
+    </section>
+    <div class="card-area">
+      <div class="score-row" id="scoreRow" style="display: none">
+        <div class="score-card">
+          <div class="score-val" id="scoreCorrect">0</div>
+          <div class="score-lbl">correct</div>
+        </div>
+        <div class="score-card">
+          <div class="score-val" id="scoreWrong">0</div>
+          <div class="score-lbl">missed</div>
+        </div>
+        <div class="score-card">
+          <div class="score-val" id="scoreLeft">10</div>
+          <div class="score-lbl">remaining</div>
+        </div>
+      </div>
+      <div class="clash-timer" id="clashTimer">
+        <div>
+          <div class="timer-label">time remaining</div>
+          <div class="timer-display" id="timerDisplay">10</div>
+        </div>
+        <button class="btn btn-clash" onclick="startClash()">
+          Start Round
+        </button>
+      </div>
+      <div class="progress-bar" id="progressBar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="flashcard-wrap" onclick="flipCard()">
+        <div class="flashcard" id="flashcard">
+          <div class="card-face card-front">
+            <div class="card-label">Question</div>
+            <div class="card-text" id="questionText">Loading...</div>
+            <div class="card-hint">tap to reveal answer</div>
+          </div>
+          <div class="card-face card-back">
+            <div class="card-label">Answer</div>
+            <div class="card-text" id="answerText"></div>
+            <div class="card-hint">tap to flip back</div>
+          </div>
+        </div>
+      </div>
+      <div class="controls" id="studyControls">
+        <button class="btn" onclick="prevCard()">← Prev</button>
+        <button class="btn btn-primary" onclick="nextCard()">Next →</button>
+      </div>
+      <div class="controls" id="clashControls" style="display: none">
+        <button class="btn" onclick="markAnswer(false)">✕ Missed</button>
+        <button class="btn btn-clash" onclick="markAnswer(true)">
+          ✓ Got it
+        </button>
+      </div>
+      <div class="counter" id="counter">Card 1 of 10</div>
+      <div class="result-banner" id="resultBanner"></div>
+    </div>
+    <script>
+      const cards = [
+        {
+          q: "What does CI/CD stand for?",
+          a: "Continuous Integration / Continuous Deployment",
+        },
+        {
+          q: "What is a Docker container?",
+          a: "A lightweight, standalone executable package that includes everything needed to run an application",
+        },
+        {
+          q: "What is the purpose of a Dockerfile?",
+          a: "A text file with instructions for building a Docker image",
+        },
+        {
+          q: "What does AWS EC2 stand for?",
+          a: "Amazon Elastic Compute Cloud — a virtual server in the cloud",
+        },
+        {
+          q: "What is GitHub Actions?",
+          a: "A CI/CD platform that automates workflows directly from your GitHub repository",
+        },
+        {
+          q: "What is a security vulnerability scan?",
+          a: "An automated check that detects known vulnerabilities in your code dependencies",
+        },
+        {
+          q: "What does 'fail fast' mean in DevOps?",
+          a: "Catching and fixing errors early in the pipeline before they reach production",
+        },
+        {
+          q: "What is Docker Compose used for?",
+          a: "Defining and running multi-container Docker applications with a single config file",
+        },
+        {
+          q: "What is a pull request?",
+          a: "A request to merge code from one branch into another, typically reviewed before merging",
+        },
+        {
+          q: "What is Prometheus?",
+          a: "An open-source monitoring and alerting toolkit that collects metrics from applications",
+        },
+      ];
+      let current = 0,
+        mode = "study",
+        flipped = false,
+        clashTimer = null,
+        timeLeft = 10,
+        correct = 0,
+        wrong = 0,
+        clashRunning = false;
+      function loadCard() {
+        const card = cards[current];
+        document.getElementById("questionText").textContent = card.q;
+        document.getElementById("answerText").textContent = card.a;
+        document.getElementById("counter").textContent =
+          `Card ${current + 1} of ${cards.length}`;
+        document.getElementById("scoreLeft").textContent =
+          cards.length - current;
+        document.getElementById("flashcard").classList.remove("flipped");
+        flipped = false;
+      }
+      function flipCard() {
+        flipped = !flipped;
+        document
+          .getElementById("flashcard")
+          .classList.toggle("flipped", flipped);
+      }
+      function nextCard() {
+        if (current < cards.length - 1) {
+          current++;
+          loadCard();
+        }
+      }
+      function prevCard() {
+        if (current > 0) {
+          current--;
+          loadCard();
+        }
+      }
+      function switchMode(m) {
+        mode = m;
+        clearInterval(clashTimer);
+        clashRunning = false;
+        current = 0;
+        correct = 0;
+        wrong = 0;
+        flipped = false;
+        document
+          .getElementById("studyTab")
+          .classList.toggle("active", m === "study");
+        document
+          .getElementById("clashTab")
+          .classList.toggle("active", m === "clash");
+        document.getElementById("studyControls").style.display =
+          m === "study" ? "flex" : "none";
+        document.getElementById("clashControls").style.display =
+          m === "clash" ? "flex" : "none";
+        document
+          .getElementById("clashTimer")
+          .classList.toggle("visible", m === "clash");
+        document
+          .getElementById("progressBar")
+          .classList.toggle("visible", m === "clash");
+        document.getElementById("scoreRow").style.display =
+          m === "clash" ? "flex" : "none";
+        document.getElementById("resultBanner").classList.remove("show");
+        updateScore();
+        loadCard();
+        resetTimer();
+      }
+      function resetTimer() {
+        timeLeft = 10;
+        const disp = document.getElementById("timerDisplay"),
+          fill = document.getElementById("progressFill");
+        disp.textContent = timeLeft;
+        disp.classList.remove("urgent");
+        fill.style.width = "100%";
+        fill.classList.remove("urgent");
+      }
+      function startClash() {
+        if (clashRunning) return;
+        clashRunning = true;
+        resetTimer();
+        clashTimer = setInterval(() => {
+          timeLeft--;
+          const disp = document.getElementById("timerDisplay"),
+            fill = document.getElementById("progressFill");
+          disp.textContent = timeLeft;
+          fill.style.width = (timeLeft / 10) * 100 + "%";
+          if (timeLeft <= 3) {
+            disp.classList.add("urgent");
+            fill.classList.add("urgent");
+          }
+          if (timeLeft <= 0) {
+            clearInterval(clashTimer);
+            clashRunning = false;
+            markAnswer(false);
+          }
+        }, 1000);
+      }
+      function markAnswer(wasCorrect) {
+        clearInterval(clashTimer);
+        clashRunning = false;
+        if (wasCorrect) correct++;
+        else wrong++;
+        updateScore();
+        if (current < cards.length - 1) {
+          current++;
+          loadCard();
+          resetTimer();
+          if (mode === "clash") setTimeout(() => startClash(), 400);
+        } else showResult();
+      }
+      function updateScore() {
+        document.getElementById("scoreCorrect").textContent = correct;
+        document.getElementById("scoreWrong").textContent = wrong;
+        document.getElementById("scoreLeft").textContent = Math.max(
+          0,
+          cards.length - current - 1,
+        );
+      }
+      function showResult() {
+        const banner = document.getElementById("resultBanner");
+        const pct = Math.round((correct / cards.length) * 100);
+        const win = pct >= 70;
+        banner.className = "result-banner show " + (win ? "win" : "lose");
+        banner.textContent = win
+          ? `Nice work! You got ${correct}/${cards.length} correct (${pct}%)`
+          : `${correct}/${cards.length} correct (${pct}%). Keep studying!`;
+      }
+      fetch("/status")
+        .then((r) => r.json())
+        .then((d) => {
+          document.getElementById("statusDot").classList.add("live");
+          document.getElementById("statusText").textContent =
+            `live · up ${d.uptime_seconds}s`;
+        })
+        .catch(() => {
+          document.getElementById("statusText").textContent = "offline";
+        });
+      loadCard();
+    </script>
+  </body>
+</html>
