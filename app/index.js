@@ -22,6 +22,10 @@ app.get("/stress", (req, res) => {
   res.json({ status: "stress test complete" });
 });
 
-app.listen(PORT, () => {
-  console.log(`FlashClash running on port ${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`FlashClash running on port ${PORT}`);
+  });
+}
+
+module.exports = app;
