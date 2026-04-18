@@ -12,7 +12,7 @@ const seedQuestionsDB = async () => {
         return;
     }
     
-    // our questions
+    // our questions: https://www.today.com/life/inspiration/trivia-questions-rcna39101
     let questionData = [
         {   
             id: new ObjectId(),
