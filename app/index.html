@@ -10,9 +10,7 @@
       rel="stylesheet"
     />
     <style>
-      *,
-      *::before,
-      *::after {
+      *, *::before, *::after {
         box-sizing: border-box;
         margin: 0;
         padding: 0;
@@ -52,7 +50,7 @@
       .nav-status {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 15px;
         font-size: 13px;
         color: var(--gray);
       }
@@ -66,6 +64,61 @@
       .status-dot.live {
         background: #3ecf4a;
       }
+      
+      .auth-container {
+        max-width: 400px;
+        margin: 4rem auto;
+        padding: 2.5rem;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: var(--light);
+      }
+      .auth-container h2 {
+        font-family: "DM Serif Display", serif;
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+        text-align: center;
+      }
+      .form-group {
+        margin-bottom: 1.25rem;
+      }
+      .form-group label {
+        display: block;
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+      }
+      .form-group input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font-family: "DM Sans", sans-serif;
+        font-size: 1rem;
+      }
+      .auth-error {
+        color: var(--red);
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
+        text-align: center;
+        min-height: 20px;
+      }
+      .auth-toggle {
+        text-align: center;
+        margin-top: 1.5rem;
+        font-size: 0.875rem;
+        color: var(--gray);
+      }
+      .auth-toggle a {
+        color: var(--black);
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: underline;
+      }
+      .hidden {
+        display: none !important;
+      }
+
       .hero {
         display: flex;
         flex-direction: column;
@@ -277,6 +330,10 @@
         opacity: 0.85;
         background: var(--accent);
       }
+      .btn-small {
+        padding: 0.4rem 1rem;
+        font-size: 0.8rem;
+      }
       .counter {
         text-align: center;
         font-size: 13px;
@@ -329,130 +386,203 @@
     <nav>
       <div class="logo">Flash<span>Clash</span></div>
       <div class="nav-status">
-        <div class="status-dot" id="statusDot"></div>
-        <span id="statusText">checking...</span>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <div class="status-dot" id="statusDot"></div>
+            <span id="statusText">checking...</span>
+        </div>
+        <button id="logoutBtn" class="btn btn-small hidden" onclick="handleLogout()">Logout</button>
       </div>
     </nav>
-    <section class="hero">
-      <h1>Study smart.<br /><em>Clash harder.</em></h1>
-      <p>
-        Build knowledge at your own pace, then test your retention under
-        pressure.
-      </p>
-      <div class="mode-tabs">
-        <button
-          class="tab-btn active"
-          id="studyTab"
-          onclick="switchMode('study')"
-        >
-          Study Mode
-        </button>
-        <button
-          class="tab-btn clash"
-          id="clashTab"
-          onclick="switchMode('clash')"
-        >
-          Clash Mode
-        </button>
-      </div>
-    </section>
-    <div class="card-area">
-      <div class="score-row" id="scoreRow" style="display: none">
-        <div class="score-card">
-          <div class="score-val" id="scoreCorrect">0</div>
-          <div class="score-lbl">correct</div>
+
+    <div id="authView" class="auth-container hidden">
+        <h2 id="authTitle">Login</h2>
+        <div id="authError" class="auth-error"></div>
+        
+        <form id="authForm" onsubmit="handleAuth(event)">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" required minlength="5" maxlength="10">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%" id="authSubmitBtn">Login</button>
+        </form>
+
+        <div class="auth-toggle">
+            <span id="authToggleText">Don't have an account?</span> 
+            <a onclick="toggleAuthMode()">Register here</a>
         </div>
-        <div class="score-card">
-          <div class="score-val" id="scoreWrong">0</div>
-          <div class="score-lbl">missed</div>
-        </div>
-        <div class="score-card">
-          <div class="score-val" id="scoreLeft">10</div>
-          <div class="score-lbl">remaining</div>
-        </div>
-      </div>
-      <div class="clash-timer" id="clashTimer">
-        <div>
-          <div class="timer-label">time remaining</div>
-          <div class="timer-display" id="timerDisplay">10</div>
-        </div>
-        <button class="btn btn-clash" onclick="startClash()">
-          Start Round
-        </button>
-      </div>
-      <div class="progress-bar" id="progressBar">
-        <div class="progress-fill" id="progressFill"></div>
-      </div>
-      <div class="flashcard-wrap" onclick="flipCard()">
-        <div class="flashcard" id="flashcard">
-          <div class="card-face card-front">
-            <div class="card-label">Question</div>
-            <div class="card-text" id="questionText">Loading...</div>
-            <div class="card-hint">tap to reveal answer</div>
-          </div>
-          <div class="card-face card-back">
-            <div class="card-label">Answer</div>
-            <div class="card-text" id="answerText"></div>
-            <div class="card-hint">tap to flip back</div>
-          </div>
-        </div>
-      </div>
-      <div class="controls" id="studyControls">
-        <button class="btn" onclick="prevCard()">← Prev</button>
-        <button class="btn btn-primary" onclick="nextCard()">Next →</button>
-      </div>
-      <div class="controls" id="clashControls" style="display: none">
-        <button class="btn" onclick="markAnswer(false)">✕ Missed</button>
-        <button class="btn btn-clash" onclick="markAnswer(true)">
-          ✓ Got it
-        </button>
-      </div>
-      <div class="counter" id="counter">Card 1 of 10</div>
-      <div class="result-banner" id="resultBanner"></div>
     </div>
+
+    <div id="appView" class="hidden">
+        <section class="hero">
+        <h1>Study smart.<br /><em>Clash harder.</em></h1>
+        <p>
+            Build knowledge at your own pace, then test your retention under
+            pressure.
+        </p>
+        <div class="mode-tabs">
+            <button
+            class="tab-btn active"
+            id="studyTab"
+            onclick="switchMode('study')"
+            >
+            Study Mode
+            </button>
+            <button
+            class="tab-btn clash"
+            id="clashTab"
+            onclick="switchMode('clash')"
+            >
+            Clash Mode
+            </button>
+        </div>
+        </section>
+
+        <div class="card-area">
+        <div class="score-row" id="scoreRow" style="display: none">
+            <div class="score-card">
+            <div class="score-val" id="scoreCorrect">0</div>
+            <div class="score-lbl">correct</div>
+            </div>
+            <div class="score-card">
+            <div class="score-val" id="scoreWrong">0</div>
+            <div class="score-lbl">missed</div>
+            </div>
+            <div class="score-card">
+            <div class="score-val" id="scoreLeft">10</div>
+            <div class="score-lbl">remaining</div>
+            </div>
+        </div>
+        <div class="clash-timer" id="clashTimer">
+            <div>
+            <div class="timer-label">time remaining</div>
+            <div class="timer-display" id="timerDisplay">10</div>
+            </div>
+            <button class="btn btn-clash" onclick="startClash()">
+            Start Round
+            </button>
+        </div>
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="flashcard-wrap" onclick="flipCard()">
+            <div class="flashcard" id="flashcard">
+            <div class="card-face card-front">
+                <div class="card-label">Question</div>
+                <div class="card-text" id="questionText">Loading...</div>
+                <div class="card-hint">tap to reveal answer</div>
+            </div>
+            <div class="card-face card-back">
+                <div class="card-label">Answer</div>
+                <div class="card-text" id="answerText"></div>
+                <div class="card-hint">tap to flip back</div>
+            </div>
+            </div>
+        </div>
+        <div class="controls" id="studyControls">
+            <button class="btn" onclick="prevCard()">← Prev</button>
+            <button class="btn btn-primary" onclick="nextCard()">Next →</button>
+        </div>
+        <div class="controls" id="clashControls" style="display: none">
+            <button class="btn" onclick="markAnswer(false)">✕ Missed</button>
+            <button class="btn btn-clash" onclick="markAnswer(true)">
+            ✓ Got it
+            </button>
+        </div>
+        <div class="counter" id="counter">Card 1 of 10</div>
+        <div class="result-banner" id="resultBanner"></div>
+        </div>
+    </div>
+
     <script>
-      const cards = [
-        {
-          q: "What does CI/CD stand for?",
-          a: "Continuous Integration / Continuous Deployment",
-        },
-        {
-          q: "What is a Docker container?",
-          a: "A lightweight, standalone executable package that includes everything needed to run an application",
-        },
-        {
-          q: "What is the purpose of a Dockerfile?",
-          a: "A text file with instructions for building a Docker image",
-        },
-        {
-          q: "What does AWS EC2 stand for?",
-          a: "Amazon Elastic Compute Cloud — a virtual server in the cloud",
-        },
-        {
-          q: "What is GitHub Actions?",
-          a: "A CI/CD platform that automates workflows directly from your GitHub repository",
-        },
-        {
-          q: "What is a security vulnerability scan?",
-          a: "An automated check that detects known vulnerabilities in your code dependencies",
-        },
-        {
-          q: "What does 'fail fast' mean in DevOps?",
-          a: "Catching and fixing errors early in the pipeline before they reach production",
-        },
-        {
-          q: "What is Docker Compose used for?",
-          a: "Defining and running multi-container Docker applications with a single config file",
-        },
-        {
-          q: "What is a pull request?",
-          a: "A request to merge code from one branch into another, typically reviewed before merging",
-        },
-        {
-          q: "What is Prometheus?",
-          a: "An open-source monitoring and alerting toolkit that collects metrics from applications",
-        },
-      ];
+      let isLoginMode = true;
+
+      // check session status when page loads
+      async function checkSessionStatus() {
+          try {
+              const res = await fetch('/loggedIn');
+              const data = await res.json();
+              
+              if (data.isLoggedIn) {
+                  showAppView();
+              } else {
+                  showAuthView();
+              }
+          } catch (e) {
+              showAuthView();
+          }
+      }
+
+      function toggleAuthMode() {
+          isLoginMode = !isLoginMode;
+          document.getElementById('authTitle').innerText = isLoginMode ? 'Login' : 'Register';
+          document.getElementById('authSubmitBtn').innerText = isLoginMode ? 'Login' : 'Create Account';
+          document.getElementById('authToggleText').innerText = isLoginMode ? "Don't have an account?" : "Already have an account?";
+          document.getElementById('authError').innerText = "";
+      }
+
+      async function handleAuth(e) {
+          e.preventDefault(); // prevent page reload
+          
+          const user = document.getElementById('username').value;
+          const pass = document.getElementById('password').value;
+          const endpoint = isLoginMode ? '/login' : '/register';
+
+          try {
+              const res = await fetch(endpoint, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ username: user, password: pass })
+              });
+              
+              const data = await res.json();
+
+              if (data.success) {
+                  if (isLoginMode) {
+                      // successful login
+                      showAppView();
+                  } else {
+                      // successful registration -> switch to login mode so they can log in
+                      document.getElementById('authError').style.color = "green";
+                      document.getElementById('authError').innerText = data.message;
+                      setTimeout(() => {
+                          toggleAuthMode();
+                          document.getElementById('authError').style.color = "var(--red)"; // reset color
+                      }, 2000);
+                  }
+              } else {
+                  document.getElementById('authError').innerText = data.error;
+              }
+          } catch (error) {
+              document.getElementById('authError').innerText = "An error occurred connecting to the server.";
+          }
+      }
+
+      async function handleLogout() {
+          await fetch('/logout', { method: 'POST' });
+          showAuthView();
+      }
+
+      function showAuthView() {
+          document.getElementById('appView').classList.add('hidden');
+          document.getElementById('logoutBtn').classList.add('hidden');
+          document.getElementById('authView').classList.remove('hidden');
+          document.getElementById('authForm').reset();
+      }
+
+      function showAppView() {
+          document.getElementById('authView').classList.add('hidden');
+          document.getElementById('appView').classList.remove('hidden');
+          document.getElementById('logoutBtn').classList.remove('hidden');
+          initializeApp(); // load the game 
+      }
+
+
+      let cards = []; 
+
       let current = 0,
         mode = "study",
         flipped = false,
@@ -461,43 +591,66 @@
         correct = 0,
         wrong = 0,
         clashRunning = false;
+      
+      async function getQuestionsForMode(mode) {
+        try {
+          const response = await fetch(`/api/questions?mode=${mode}`);
+          cards = await response.json();
+          current = 0;
+          correct = 0;
+          wrong = 0;
+          flipped = false;
+          updateScore();
+          loadCard();
+        } catch (error) {
+          document.getElementById("questionText").textContent = "Error loading questions from server.";
+        }
+      }
+
+      async function initializeApp() {
+        let getQuestions = await getQuestionsForMode(mode);
+      }
+
       function loadCard() {
+        if(cards.length === 0) {
+          return;
+        }
+
         const card = cards[current];
         document.getElementById("questionText").textContent = card.q;
         document.getElementById("answerText").textContent = card.a;
-        document.getElementById("counter").textContent =
-          `Card ${current + 1} of ${cards.length}`;
-        document.getElementById("scoreLeft").textContent =
-          cards.length - current;
+        document.getElementById("counter").textContent = `Card ${current + 1} of ${cards.length}`;
+        document.getElementById("scoreLeft").textContent = cards.length - current;
         document.getElementById("flashcard").classList.remove("flipped");
         flipped = false;
       }
+
       function flipCard() {
         flipped = !flipped;
-        document
-          .getElementById("flashcard")
-          .classList.toggle("flipped", flipped);
+        document.getElementById("flashcard").classList.toggle("flipped", flipped);
       }
+
       function nextCard() {
         if (current < cards.length - 1) {
           current++;
           loadCard();
+        } else if (mode === "study") {
+          showResult();
         }
       }
+
       function prevCard() {
         if (current > 0) {
           current--;
           loadCard();
         }
       }
-      function switchMode(m) {
+
+      async function switchMode(m) {
         mode = m;
         clearInterval(clashTimer);
         clashRunning = false;
-        current = 0;
-        correct = 0;
-        wrong = 0;
-        flipped = false;
+
         document
           .getElementById("studyTab")
           .classList.toggle("active", m === "study");
@@ -516,11 +669,12 @@
           .classList.toggle("visible", m === "clash");
         document.getElementById("scoreRow").style.display =
           m === "clash" ? "flex" : "none";
-        document.getElementById("resultBanner").classList.remove("show");
-        updateScore();
-        loadCard();
+        document.getElementById("resultBanner").classList.remove("show");        
+
+        let getQuestions = await getQuestionsForMode(mode);
         resetTimer();
       }
+
       function resetTimer() {
         timeLeft = 10;
         const disp = document.getElementById("timerDisplay"),
@@ -530,6 +684,7 @@
         fill.style.width = "100%";
         fill.classList.remove("urgent");
       }
+
       function startClash() {
         if (clashRunning) return;
         clashRunning = true;
@@ -551,12 +706,14 @@
           }
         }, 1000);
       }
+
       function markAnswer(wasCorrect) {
         clearInterval(clashTimer);
         clashRunning = false;
         if (wasCorrect) correct++;
         else wrong++;
         updateScore();
+        
         if (current < cards.length - 1) {
           current++;
           loadCard();
@@ -564,34 +721,51 @@
           if (mode === "clash") setTimeout(() => startClash(), 400);
         } else showResult();
       }
+
       function updateScore() {
         document.getElementById("scoreCorrect").textContent = correct;
         document.getElementById("scoreWrong").textContent = wrong;
-        document.getElementById("scoreLeft").textContent = Math.max(
-          0,
-          cards.length - current - 1,
-        );
+        document.getElementById("scoreLeft").textContent = Math.max(0, cards.length - current - 1);
       }
-      function showResult() {
+
+      async function showResult() {
         const banner = document.getElementById("resultBanner");
-        const pct = Math.round((correct / cards.length) * 100);
-        const win = pct >= 70;
-        banner.className = "result-banner show " + (win ? "win" : "lose");
-        banner.textContent = win
-          ? `Nice work! You got ${correct}/${cards.length} correct (${pct}%)`
-          : `${correct}/${cards.length} correct (${pct}%). Keep studying!`;
+        let win = false;
+
+        if (mode === "clash") {
+          const pct = Math.round((correct / cards.length) * 100);
+          win = pct >= 70;
+          banner.className = "result-banner show " + (win ? "win" : "lose");
+          banner.textContent = win
+            ? `Nice work! You got ${correct}/${cards.length} correct (${pct}%)`
+            : `${correct}/${cards.length} correct (${pct}%). Keep studying!`;
+        } else {
+          banner.className = "result-banner show win";
+          banner.textContent = "Study session complete! Great job reviewing all the cards.";
+        }
+
+        try {
+          await fetch('/api/stats', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ mode: mode, win: win })
+          });
+        } catch (error) {
+          console.error("Failed to save stats");
+        }
       }
+
       fetch("/status")
         .then((r) => r.json())
         .then((d) => {
           document.getElementById("statusDot").classList.add("live");
-          document.getElementById("statusText").textContent =
-            `live · up ${d.uptime_seconds}s`;
+          document.getElementById("statusText").textContent = `live · up ${d.uptime_seconds}s`;
         })
         .catch(() => {
           document.getElementById("statusText").textContent = "offline";
         });
-      loadCard();
+
+      checkSessionStatus();
     </script>
   </body>
 </html>

@@ -29,3 +29,14 @@ jobs:
 
       - name: Build Docker image
         run: docker build -t flashclash .
+
+      - name: Checking Security 
+        run: npm audit --audit-level=high
+        working-directory: app
+      
+      - name: Run tests
+        run: npm test
+        working-directory: app
+
+      - name: Build docker image 
+        run: docker build -t flashclas .
