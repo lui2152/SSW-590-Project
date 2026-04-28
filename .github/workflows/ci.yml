@@ -40,5 +40,4 @@ jobs:
           image-ref: 'flashclash:latest'
           format: 'table'
           exit-code: '1'
-          # Changed to only fail on CRITICAL to help pass the build
           severity: 'CRITICAL'
