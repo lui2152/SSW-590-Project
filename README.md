@@ -7,8 +7,13 @@ Two Modes: Study Mode and Clash Mode
 
 Group Members: Ivana Lu, Keona Hicks, Jessica Militello, Hemang Shankar, Sabrina Trestin  
 
+App Hosted On: http://3.19.75.155:3000/
+
 Instructions for launch:
 Prerequisites: Docker Desktop 
 1. Open terminal and build using docker-compose build
 2. After building, type docker-compose up -d to run 
 3. Open http://localhost:3000/
+
+Prometheus and Grafana:
+* Grafana Dashboards: http://localhost:4000/

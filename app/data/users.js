@@ -168,8 +168,8 @@ const getUserById = async (userId) => {
     userId = validateObjectId(userId,"User ID");
 
     // verify that user exists with that id
-    const userCollection = await users();
-    const user = await userCollection.findOne({ _id: new ObjectId(userId) });
+    const usersCollection = await users();
+    const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
     
     if (!user) {
         throw new Error(`Error: No user with id: ${userId}!`);
@@ -198,8 +198,8 @@ const getUserById = async (userId) => {
 // Function: Return all users in the database
 const getAllUsers = async () => {
     // get all users in database into a userList
-    const userCollection = await users();
-    const userList = await userCollection.find({}).toArray();
+    const usersCollection = await users();
+    const userList = await usersCollection.find({}).toArray();
 
     // return all info of each individual user
     return userList.map((elem) => ({
@@ -222,7 +222,7 @@ const getAllUsers = async () => {
 
 // Function: Updates the user stats after clash game or study session
 const updateUserStats = async (userId, mode, win = false) => {
-    const userCollection = await users();
+    const usersCollection = await users();
     let updateStats = {};
 
     // conditional updates based on game mode
