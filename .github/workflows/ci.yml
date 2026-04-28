@@ -40,3 +40,11 @@ jobs:
 
       - name: Build docker image 
         run: docker build -t flashclas .
+
+      - name: Scan Docker Image (Trivy)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'flashclash:latest'
+          format: 'table'
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
