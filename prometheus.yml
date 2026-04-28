@@ -1,0 +1,16 @@
+global:
+  scrape_interval: 10s
+
+scrape_configs:
+  - job_name: "flashclash-prometheus"
+    static_configs:
+      - targets: ["prometheus:9090"]
+
+  - job_name: "flashclash-backend"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets: ["flashclash:3000"]
+
+  - job_name: "docker-monitor"
+    static_configs:
+      - targets: ["cadvisor:8080"]
