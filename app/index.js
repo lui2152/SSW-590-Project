@@ -4,7 +4,7 @@ const path = require("path");
 const session = require('express-session');
 
 // test: GitLeaks
-const AWS_KEY = "AKIAIMNO7890ORSETEXAMPLE";
+const AWS_KEY = "AKIAIOSFODNN7EXAMPLE";
 
 // imports 
 const { getRandomQuestionFromDB, seedQuestionsDB, getAllQuestions } = require("./data/questions.js");
