@@ -412,7 +412,7 @@
 
         <div class="auth-toggle">
             <span id="authToggleText">Don't have an account?</span> 
-            <a onclick="toggleAuthMode()">Register here</a>
+            <a onclick="toggleAuthMode()">Click here</a>
         </div>
     </div>
 
@@ -732,6 +732,10 @@
         const banner = document.getElementById("resultBanner");
         let win = false;
 
+        // hide clash controls and study controls and clash timer after completion of clash or study mode
+        document.getElementById("clashControls").style.display = "none";
+        document.getElementById("clashTimer").classList.remove("visible");
+        
         if (mode === "clash") {
           const pct = Math.round((correct / cards.length) * 100);
           win = pct >= 70;
