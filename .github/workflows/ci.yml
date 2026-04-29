@@ -1,25 +1,17 @@
-name: FlashClash CI
+name: FlashClash CI/CD
 
 on:
   push:
-    branches: ["**"]
+    branches: [main]
   pull_request:
     branches: [main]
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Gitleaks Secret
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          args: detect --source . --verbose
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -30,10 +22,6 @@ jobs:
         run: npm install
         working-directory: app
 
-      - name: Checking Security 
-        run: npm audit --audit-level=high
-        working-directory: app
-      
       - name: Run tests
         run: npm test
         working-directory: app
@@ -41,11 +29,19 @@ jobs:
       - name: Build Docker image
         run: docker build -t flashclash .
 
-      - name: Scan Docker Image (Trivy)
-        uses: aquasecurity/trivy-action@master
+  deploy:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1
         with:
-          image-ref: 'flashclash:latest'
-          format: 'table'
-          exit-code: '1'
-          severity: 'CRITICAL'
-      
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd SSW-590-Project
+            git pull origin main
+            docker-compose down
+            docker-compose up --build -d

@@ -3,6 +3,37 @@ const app = express();
 const path = require("path");
 const session = require('express-session');
 
+// for prometheus 
+const client = require('prom-client');
+const collectDefaultMetrics = client.collectDefaultMetrics;
+collectDefaultMetrics({ prefix: 'flashclash_' });
+
+// metrics
+const failedLoginsCounter = new client.Counter({
+  name: 'flashclash_failed_logins_total',
+  help: 'Total count of failed login attempts'
+});
+
+const successfulLoginsCounter = new client.Counter({
+  name: 'flashclash_successful_logins_total',
+  help: 'Total count of successful logins'
+});
+
+const accountLockoutsCounter = new client.Counter({
+  name: 'flashclash_account_lockouts_total',
+  help: 'Total count of locked accounts'
+});
+
+const clashMatchesPlayedCounter = new client.Counter({
+  name: 'flashclash_clash_matches_played_total',
+  help: 'Total Clash matches completed'
+});
+
+const studySessionsCompletedCounter = new client.Counter({
+  name: 'flashclash_study_sessions_completed_total',
+  help: 'Total Study sessions completed'
+});
+
 // imports 
 const { getRandomQuestionFromDB, seedQuestionsDB, getAllQuestions } = require("./data/questions.js");
 const { register, login, updateUserStats } = require("./data/users.js");
@@ -51,9 +82,18 @@ app.post("/api/stats", async (req, res) => {
   }
   
   const { mode, win } = req.body;
+
   
   try {
     let updateStats = await updateUserStats(req.session.user.userId, mode, win);
+    // increment stats counters for number of clashes and study mode used 
+    if (mode === "clash") {
+      clashMatchesPlayedCounter.inc();
+    }
+    else if (mode === "study") {
+      studySessionsCompletedCounter.inc();
+    }
+
     res.status(200).json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -82,8 +122,20 @@ app.post("/login", async (req, res) => {
       username: user.username
     };
 
+    // increment counter for successful login
+    successfulLoginsCounter.inc();
+
     res.status(200).json({ success: true, message: "Logged in successfully!", user: user });
   } catch (error) {
+    if (error.message.includes("temporarily locked")) {
+      // increment counter for locked
+      accountLockoutsCounter.inc();
+    } 
+    else {
+      // increment counter for failed login attempts
+      failedLoginsCounter.inc();
+      
+    }
     res.status(401).json({ success: false, error: error.message });
   }
 });
@@ -101,6 +153,13 @@ app.get("/loggedIn", (req, res) => {
     res.status(200).json({ isLoggedIn: false });
   }
 });
+
+// metrics endpoint for prometheus
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', client.register.contentType);
+  res.end(await client.register.metrics());
+});
+
 
 const startTime = Date.now();
 let restartCount = 0;
