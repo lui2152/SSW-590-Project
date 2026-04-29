@@ -447,13 +447,17 @@
             <div class="score-val" id="scoreCorrect">0</div>
             <div class="score-lbl">correct</div>
             </div>
-            <div class="score-card">
+            <!-- <div class="score-card">
             <div class="score-val" id="scoreWrong">0</div>
             <div class="score-lbl">missed</div>
-            </div>
+            </div> -->
             <div class="score-card">
             <div class="score-val" id="scoreLeft">10</div>
             <div class="score-lbl">remaining</div>
+            </div>
+            <div class="score-card" style="background: #ffebee;">
+            <div class="score-val" id="scoreBot" style="color: var(--red);">0</div>
+            <div class="score-lbl">Bot Score</div>
             </div>
         </div>
         <div class="clash-timer" id="clashTimer">
@@ -599,6 +603,8 @@
           current = 0;
           correct = 0;
           wrong = 0;
+          botScore = 0;
+          document.getElementById("scoreBot").textContent = "0";
           flipped = false;
           updateScore();
           loadCard();
@@ -649,6 +655,7 @@
       async function switchMode(m) {
         mode = m;
         clearInterval(clashTimer);
+        clearTimeout(botTimer);
         clashRunning = false;
 
         document
@@ -705,13 +712,26 @@
             markAnswer(false);
           }
         }, 1000);
+
+        startBot();
       }
 
       function markAnswer(wasCorrect) {
+        if (!clashRunning) return;
+
+        clearTimeout(botTimer);
         clearInterval(clashTimer);
         clashRunning = false;
+        
         if (wasCorrect) correct++;
-        else wrong++;
+        else {
+          wrong++;
+          
+          if (mode === "clash") {
+            botScore++;
+            document.getElementById("scoreBot").textContent = botScore;
+          }
+        }
         updateScore();
         
         if (current < cards.length - 1) {
@@ -724,7 +744,7 @@
 
       function updateScore() {
         document.getElementById("scoreCorrect").textContent = correct;
-        document.getElementById("scoreWrong").textContent = wrong;
+        // document.getElementById("scoreWrong").textContent = wrong;
         document.getElementById("scoreLeft").textContent = Math.max(0, cards.length - current - 1);
       }
 
@@ -757,6 +777,56 @@
         } catch (error) {
           console.error("Failed to save stats");
         }
+      }
+
+      let botTimer = null;
+      let botScore = 0;
+
+      function moveNextCardBot() {
+        clearInterval(clashTimer);
+        clashRunning = false;
+
+        // move to next card if we havent reached the end
+        if (current < cards.length - 1) {
+          current++;
+          loadCard();
+          resetTimer();
+          setTimeout(() => startClash(), 1000);
+        }
+        else {
+          // show result if reached end of cards
+          showResult();
+        }
+      }
+
+      function startBot() {
+        // currently set at 4-6 seconds
+        const botProcessingTime = Math.floor(Math.random() * 2000) + 4000;
+        
+        // start timer
+        botTimer = setTimeout(() => {
+          // stop ckash timer
+          clearInterval(clashTimer);
+          clashRunning = false;
+
+          // increment score when bot beats user
+          botScore++
+          document.getElementById("scoreBot").textContent = botScore;
+
+          // refresh score
+          wrong++;
+          updateScore()
+
+          // tell user that bot won
+          let displayResult = document.getElementById("timerDisplay");
+          displayResult.textContent = "BOT WON!!";
+          displayResult.classList.add("urgent");
+
+          // move to next card after a second 
+          setTimeout(() => {
+            moveNextCardBot();
+          }, 2000);
+        }, botProcessingTime);
       }
 
       fetch("/status")
